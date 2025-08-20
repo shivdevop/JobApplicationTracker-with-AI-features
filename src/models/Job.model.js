@@ -28,8 +28,8 @@ const JobSchema=new Schema({
     },
     status: {
       type: String,
-      enum: ["applied", "interview", "offer", "rejected"],
-      default: "applied",
+      enum: ["yettoapply","applied", "interview", "offer", "rejected"],
+      default: "yettoapply",
     },
     resumePath: {
       type: String, // will store cloud url 

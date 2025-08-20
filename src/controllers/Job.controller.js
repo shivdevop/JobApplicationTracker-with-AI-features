@@ -1,8 +1,10 @@
-import { ApiError } from "../utils/ApiError";
-import { ApiResponse } from "../utils/ApiResponse";
-import { asyncHandler } from "../utils/AsyncHandler";
-import { uploadOnCloudinary } from "../utils/cloudinary";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { asyncHandler } from "../utils/AsyncHandler.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import Job from "../models/Job.model.js";
+import { getResumeInsights } from "../services/ai.service.js";
+import { extractResumeText } from "../utils/extractResumeText.js";
 
 
 
@@ -219,3 +221,49 @@ export const deleteJob=asyncHandler(async(req,res)=>{
 })
 
 
+export const getResumeInsights = asyncHandler(async (req, res) => {
+  const {jobId} = req.params;
+
+  if (!jobId) throw new ApiError(400, "jobId is required");
+
+  const job = await Job.findById(jobId);
+  if (!job) throw new ApiError(404, "Job not found");
+
+  if (job.createdBy.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "Not authorized for this job");
+  }
+
+  if (!job.resumePath) {
+    throw new ApiError(400, "No resume uploaded for this job");
+  }
+
+  // Use provided JD override or the job's own description
+  const jd = job.description || "";
+  if (!jd.trim()) throw new ApiError(400, "Job description is required");
+
+  // 1) Extract resume text from Cloudinary URL
+  const resumeText = await extractResumeText(job.resumePath);
+
+  if (!resumeText || !resumeText.trim()) {  
+    throw new ApiError(400, "Failed to extract text from resume");
+  }
+
+
+  // 2) Generate AI insights
+  const insights = await getResumeInsights(resumeText,jd)
+
+  // 3) (Optional) Save to DB if fields exist
+//   const update = {};
+//   if (typeof insights.match_score === "number") update.matchScore = insights.match_score;
+//   update.aiInsights = insights;
+
+//   try {
+//     await Job.findByIdAndUpdate(jobId, update, { new: true });
+//   } catch {
+//     // Non-blocking: even if save fails, still return insights
+//   }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, insights, "Resume insights generated"));
+});
