@@ -1,4 +1,6 @@
 import mongoose,{Schema}  from "mongoose";
+import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2"
+
 
 const JobSchema=new Schema({
     title: {
@@ -11,6 +13,18 @@ const JobSchema=new Schema({
     },
     description: {
       type: String,
+    },
+    location: {
+      type: String,
+      required: [true, "Location is required"],
+    },
+    salary:{
+        type:Number,
+        required:[true,"Salary is required"]
+    },
+    jobType:{
+        type:String,
+        required:[true,"Job type is required"]
     },
     status: {
       type: String,
@@ -27,3 +41,7 @@ const JobSchema=new Schema({
       required: true
     }
 },{timestamps:true})
+
+JobSchema.plugin(mongooseAggregatePaginate)
+
+export const Job=mongoose.model("Job",JobSchema)

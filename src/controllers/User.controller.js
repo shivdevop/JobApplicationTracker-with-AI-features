@@ -63,5 +63,16 @@ export const loginUser=asyncHandler(async(req,res)=>{
 })
 
 //logout user 
+export const logoutUser=asyncHandler(async(req,res)=>{
+    const options={
+        httpOnly:true,
+        secure:true
+    }
+    return res.status(200).clearCookie("accessToken",options).json(
+        new ApiResponse(200, null,"user logged out successfully" )
+    )
+})   
+
+
 
 
