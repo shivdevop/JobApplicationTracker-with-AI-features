@@ -1,4 +1,5 @@
 const errorHandler = (err, req, res, next) => {
+    console.error("Error details:", err);
     res.status(err.statusCode || 500).json({
         success: false,
         message: err.message || 'Internal Server Error'
@@ -6,5 +7,4 @@ const errorHandler = (err, req, res, next) => {
 }
 
 export { errorHandler };
-// This error handler middleware captures errors thrown in the app and sends a json response with error message and status code 
-
+// This error handler middleware captures errors thrown in the app and sends a json response with error message and status code

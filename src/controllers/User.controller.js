@@ -4,10 +4,20 @@ import { User } from "../models/User.model.js"
 import { asyncHandler } from "../utils/AsyncHandler.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
+import { userRegisterSchema } from "../validators/user.validation.js"
+
 
 
 export const registerUser=asyncHandler(async(req,res)=>{
     const {username,email,password}=req.body 
+
+     const parsed=userRegisterSchema.safeParse(
+        {username,email,password}
+    )
+
+    if (!parsed.success){
+        throw new ApiError(400,parsed.error.issues[0].message)
+    } 
 
     const existing=await User.findOne({$or:[{username},{email}]})
     if (existing){
@@ -71,8 +81,4 @@ export const logoutUser=asyncHandler(async(req,res)=>{
     return res.status(200).clearCookie("accessToken",options).json(
         new ApiResponse(200, null,"user logged out successfully" )
     )
-})   
-
-
-
-
+})

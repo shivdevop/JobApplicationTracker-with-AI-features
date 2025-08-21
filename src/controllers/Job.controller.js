@@ -2,7 +2,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/AsyncHandler.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
-import Job from "../models/Job.model.js";
+import {Job} from "../models/Job.model.js";
 import { getResumeInsights } from "../services/ai.service.js";
 import { extractResumeText } from "../utils/extractResumeText.js";
 
@@ -26,10 +26,18 @@ export const createJob=asyncHandler(async(req,res)=>{
       return res.status(400).json({ message: "Resume is required" });
     }
 
-    const resumeUpload=await uploadOnCloudinary(req.file.path)
-    if(!resumeUpload){
-        throw new ApiError(500,"resume upload failed")
-    }
+//     const resumeUpload=await uploadOnCloudinary(req.file.path,{
+//   resource_type: "auto",  // <-- IMPORTANT for PDFs
+//  })
+//     if(!resumeUpload){
+//         throw new ApiError(500,"resume upload failed")
+//     }
+ // ✅ Upload resume
+  const resumeUpload = await uploadOnCloudinary(req.file.path);
+  if (!resumeUpload) {
+    throw new ApiError(500, "Resume upload failed");
+  }
+
     const newJob=await Job.create({
         title,
         company,
@@ -38,7 +46,7 @@ export const createJob=asyncHandler(async(req,res)=>{
         salary,
         jobType,
         status,
-        resumePath:resumeUpload.url,
+        resumePath:resumeUpload.secure_url,
         createdBy:userid
 
     })
@@ -56,7 +64,7 @@ export const createJob=asyncHandler(async(req,res)=>{
 //get all jobs 
 export const getAllJobs=asyncHandler(async(req,res)=>{
     const userid=req.user._id 
-    if (!user){
+    if (!userid){
         throw new ApiError(400,"user not found")
     }
 
@@ -68,7 +76,7 @@ export const getAllJobs=asyncHandler(async(req,res)=>{
     if (search) match.title={$regex:search,$options:"i"}  //case insensitive search
 
     //create aggregate pipeline
-    const aggregateQuery= await Job.aggregate([
+    const aggregateQuery=  Job.aggregate([
         {$match:match},
         {$sort:{
             createdAt:-1
@@ -155,10 +163,11 @@ export const updateJob=asyncHandler(asyncHandler(async(req,res)=>{
         // Extract public_id from existing resume URL
         const oldResumeUrl = job.resumePath;
         const oldPublicId = oldResumeUrl.split("/").pop().split(".")[0];
-        const deleteExistingResume=await deleteFromCloudinary(oldPublicId, "auto");
-        if(!deleteExistingResume){
-            throw new ApiError(500,"old resume deletion failed")
-        }
+        // const deleteExistingResume=await deleteFromCloudinary(oldPublicId, "auto");
+        // if(!deleteExistingResume){
+        //     // throw new ApiError(500,"old resume deletion failed")
+        //     console.log("old resume delete failed from cloudinary")
+        // }
 
         const resumeupload=await uploadOnCloudinary(req.file.path)
         if(!resumeupload){
@@ -221,7 +230,7 @@ export const deleteJob=asyncHandler(async(req,res)=>{
 })
 
 
-export const getResumeInsights = asyncHandler(async (req, res) => {
+export const resumeEvaluation = asyncHandler(async (req, res) => {
   const {jobId} = req.params;
 
   if (!jobId) throw new ApiError(400, "jobId is required");

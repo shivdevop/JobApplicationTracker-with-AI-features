@@ -1,27 +1,23 @@
+import { PdfReader } from "pdfreader";
 import axios from "axios";
-import pdfParse from "pdf-parse";
-import mammoth from "mammoth";
-
-const getFileBuffer = async (url) => {
-  const res = await axios.get(url, { responseType: "arraybuffer" });
-  return Buffer.from(res.data);
-};
 
 export const extractResumeText = async (resumeUrl) => {
-  const lower = resumeUrl.split("?")[0].toLowerCase();
+  // Download PDF into buffer
+  const response = await axios.get(resumeUrl, { responseType: "arraybuffer" });
+  const pdfBuffer = Buffer.from(response.data);
 
-  const buf = await getFileBuffer(resumeUrl);
+  return new Promise((resolve, reject) => {
+    let extractedText = "";
 
-  if (lower.endsWith(".pdf")) {
-    const data = await pdfParse(buf);
-    return data.text || "";
-  }
-
-  if (lower.endsWith(".docx")) {
-    const { value } = await mammoth.extractRawText({ buffer: buf });
-    return value || "";
-  }
-
-  // fallback: treat as plain text (txt, md, unknown)
-  return buf.toString("utf8");
+    // Parse PDF from buffer using parseBuffer callback interface
+    new PdfReader().parseBuffer(pdfBuffer, (err, item) => {
+      if (err) {
+        reject(err);
+      } else if (!item) {
+        resolve(extractedText.trim());
+      } else if (item.text) {
+        extractedText += item.text + " ";
+      }
+    });
+  });
 };
