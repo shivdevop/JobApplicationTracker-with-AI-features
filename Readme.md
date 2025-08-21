@@ -1,3 +1,14 @@
+<!-- TAGS & BADGES -->
+<p align="center">
+  <img src="https://img.shields.io/badge/Node.js-16%2B-green" alt="Node.js" />
+  <img src="https://img.shields.io/badge/Express.js-Backend-blue" alt="Express.js" />
+  <img src="https://img.shields.io/badge/MongoDB-Database-brightgreen" alt="MongoDB" />
+  <img src="https://img.shields.io/badge/Cloudinary-File%20Storage-yellow" alt="Cloudinary" />
+  <img src="https://img.shields.io/badge/JWT-Authentication-orange" alt="JWT" />
+  <img src="https://img.shields.io/badge/AI-Resume%20Insights-purple" alt="AI" />
+  <img src="https://img.shields.io/badge/License-MIT-blue" alt="MIT License" />
+</p>
+
 # Job Application Tracker with AI Features
 
 A full-stack web application to manage job applications, upload resumes, and leverage AI-powered resume insights. Built with Node.js, Express, MongoDB, Cloudinary, and integrates AI services for resume evaluation.
